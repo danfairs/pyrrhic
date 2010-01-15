@@ -13,12 +13,13 @@ class Resource(object):
     
     def __init__(self, url):
         """
-        Create a Resource instance, bound to a URL. The URL must start with http: or https:
-        >>> r = Resource(u'ftp://something')
-        ValueError
+        Create a Resource instance, bound to a URL.
         """
-        self.url = url
         self.parsed_url = urlparse.urlparse(url)
+        if not self.parsed_url.scheme:
+            url = 'http://' + url
+            self.parsed_url = urlparse.urlparse(url)
+        self.url = url
 
     def _getresponse(self, verb, params={}, headers={}):
         assert verb in HTTP_VERBS        

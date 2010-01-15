@@ -32,6 +32,12 @@ class ResourceTestCase(StdoutRedirectorBase):
     
     def setUp(self):
         self.resource = pyrrhic.Resource('http://foo.com:8080/resource')
+        
+    def testScheme(self):
+        # Note that the URL scheme defaults to http if none is
+        # provided
+        r = pyrrhic.Resource('foo.com')
+        self.assertEqual('http://foo.com', r.url)
 
     def testGet(self):
         mock_request = mock.Mock()
@@ -133,7 +139,6 @@ class ResourceCommandTestCase(StdoutRedirectorBase):
         self.failUnless(resources.has_key('cheese'))
         cheese = resources['cheese']
         self.failIf(cheese is unnamed2)
-
         
         
 class ShowCommandTestCase(StdoutRedirectorBase):
