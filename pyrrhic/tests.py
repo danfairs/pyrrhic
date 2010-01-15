@@ -45,6 +45,8 @@ class ResourceTestCase(StdoutRedirectorBase):
         self.assertEqual('http://foo.com:80', r.url)
         r = pyrrhic.Resource('https://foo.com')
         self.assertEqual('https://foo.com:443', r.url)
+        r = pyrrhic.Resource('foo.com:123')        
+        self.assertEqual('http://foo.com:123', r.url)
 
     def testGet(self):
         mock_request = mock.Mock()

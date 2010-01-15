@@ -16,6 +16,13 @@ class Resource(object):
         Create a Resource instance, bound to a URL.
         """
         parsed_url = urlparse.urlparse(url)
+        if parsed_url.scheme and not parsed_url.netloc:
+            # If we have a scheme but no netloc, someone's entered
+            # a URL like 'foo.com:123'. Add an http://to the
+            # start, and reparse.
+            url = 'http://' + url
+            parsed_url = urlparse.urlparse(url)
+            
         if not parsed_url.scheme:
             # If no scheme was provided, then the url parsing
             # won't have worked. Reparse.
