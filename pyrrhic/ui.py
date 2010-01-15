@@ -1,20 +1,34 @@
 import pyrrhic.commands
 
+# HelpCommand is in the ui module because it's nothing to do with core
+# functionality
+class HelpCommand(pyrrhic.commands.BaseCommand):
+    """
+    Prints out some help on all commands.
+    """
+
+    def run(self, *args):
+        for opt, cls in REGISTERED_COMMANDS.items():
+            doc = ' '.join(cls.__doc__.split())
+            print "%s: %s" % (opt, doc)
+
+REGISTERED_COMMANDS = {
+    'h': HelpCommand,
+    'r': pyrrhic.commands.ResourceCommand,
+    'q': pyrrhic.commands.QuitCommand,
+    's': pyrrhic.commands.ShowCommand,
+    'get': pyrrhic.commands.GetCommand,
+}
+
+
 class CommandParser(object):
 
-    commands = {
-        'r': pyrrhic.commands.ResourceCommand,
-        'q': pyrrhic.commands.QuitCommand,
-        's': pyrrhic.commands.ShowCommand,
-        'get': pyrrhic.commands.GetCommand,
-    }
-    
     def parse(self, str):
         bits = str.split()
         cmd = bits[0].lower()
-        command = self.commands.get(cmd, pyrrhic.commands.UnknownCommand)
+        command = REGISTERED_COMMANDS.get(cmd, pyrrhic.commands.UnknownCommand)
         return command, tuple(bits[1:])
-    
+        
     
 def console():
     p = CommandParser()

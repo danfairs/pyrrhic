@@ -131,6 +131,24 @@ class QuitCommandTestCase(StdoutRedirectorBase):
         self.assertEqual([], out.written)
         
 
+class HelpCommandTestCase(StdoutRedirectorBase):
+    
+    def testHelp(self):
+        out = self._stdout()
+        c = pyrrhic.ui.HelpCommand({})
+        c.run()
+        
+        # Don't bet on what commands are there. Just check for the help 
+        # command!
+        expected = 'h: ' + c.__doc__.strip()
+        found = False
+        for line in out.written:
+            if line == expected:
+                found = True
+                break
+        self.failUnless(found)
+
+
 class UnknownCommandTestCae(StdoutRedirectorBase):
 
     def testUnknown(self):

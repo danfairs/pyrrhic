@@ -47,7 +47,7 @@ class ResourceCommand(BaseCommand):
         
 class QuitCommand(BaseCommand):
     """
-    This command just prints a message out.
+    Print help on how to quit. (Hint: Ctrl-D)
     """
     def run(self, *args):
         print 'Press ^D (Ctrl-D) to quit'
@@ -84,4 +84,5 @@ class GetCommand(BaseCommand):
         for header, value in headers.items():
             print "%s: %s" % (header, value)
         print data
+                    
             
