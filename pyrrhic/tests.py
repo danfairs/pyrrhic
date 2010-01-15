@@ -5,6 +5,8 @@ import mock
 import testfixtures
 
 import pyrrhic
+import pyrrhic.ui
+import pyrrhic.commands
 
 class ResourceTestCase(unittest.TestCase):
     
@@ -26,4 +28,13 @@ class ResourceTestCase(unittest.TestCase):
 
         self.assertEqual(200, status)
         self.assertEqual('This is the response body', body)
+        
+        
+class CommandParserTestCase(unittest.TestCase):
+    
+    def testResource(self):
+        p = pyrrhic.ui.CommandParser()
+        command, args = p.parse('r http://foo.com')
+        self.assertEqual(pyrrhic.commands.RESOURCE, command)
+        self.assertEqual(('http://foo.com',), args)
         
