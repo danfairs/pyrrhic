@@ -34,7 +34,7 @@ class ResourceCommand(BaseCommand):
         try:
             name = args[1]
         except IndexError:
-            name = '__unnamed__'
+            name = '__default__'
         self.resources[name] = pyrrhic.Resource(url)
 
         

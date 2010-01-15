@@ -29,7 +29,7 @@ def console():
                 except pyrrhic.commands.ValidationError, e:
                     print "Error: %s" % str(e)
                     continue
-                c.run(args)
+                c.run(*args)
         except EOFError:
             print
             exit = True

@@ -89,13 +89,13 @@ class CommandTestCase(unittest.TestCase):
         c = pyrrhic.commands.ResourceCommand(resources)
         c.run('http://foo.com')
         self.assertEqual(1, len(resources.items()))
-        self.failUnless(resources.has_key('__unnamed__'))
+        self.failUnless(resources.has_key('__default__'))
         
-        unnamed = resources['__unnamed__']
+        unnamed = resources['__default__']
         self.failUnless(isinstance(unnamed, pyrrhic.Resource))
         
         c.run('http://bar.com')
-        unnamed2 = resources['__unnamed__']
+        unnamed2 = resources['__default__']
         self.failIf(unnamed is unnamed2)
 
         c.run('http://cheese.com', 'cheese')
@@ -127,8 +127,8 @@ class CommandTestCase(unittest.TestCase):
     def testShowResources(self):
         out = self._stdout()
         c = pyrrhic.commands.ShowCommand({
-            '__unnamed__': pyrrhic.Resource('http://foo.com')
+            '__default__': pyrrhic.Resource('http://foo.com')
         })
         c.run()
-        self.assertEqual(['__unnamed__\t\thttp://foo.com','\n'], out.written)
+        self.assertEqual(['__default__\t\thttp://foo.com','\n'], out.written)
 
