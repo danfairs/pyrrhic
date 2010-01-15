@@ -131,8 +131,36 @@ class CommandTestCase(unittest.TestCase):
         })
         c.run()
         self.assertEqual(['__default__\t\thttp://foo.com','\n'], out.written)
+
         
-    def testShowValidation(self):
-        # Show's validation always passes
-        c = pyrrhic.commands.ShowCommand({})
+class GetCommandTestCase(StdoutRedirectorBase):
+    
+    def testGetCommandNoDefault(self):
+        # If there's no default resource, we should get a validation error
+        c = pyrrhic.commands.GetCommand({})
+        self.assertRaises(pyrrhic.commands.ValidationError, c.validate)
+        
+    def testGetCommandBadResource(self):
+        # If a named resource is supplied that doesn't exist, we should
+        # also get a validation error
+        c = pyrrhic.commands.GetCommand({})
+        self.assertRaises(pyrrhic.commands.ValidationError, c.validate, 'foo')
+
+    def testValidateDefault(self):
+        # If a default is present, validation should be OK
+        resources = {'__default__': pyrrhic.Resource('http://foo.com')}
+        c = pyrrhic.commands.GetCommand(resources)
         c.validate()
+        
+    def testNotDefaultValidation(self):
+        # If a non-default is specified and is present, that's OK too
+        resources = {'foo': pyrrhic.Resource('http://foo.com')}
+        c = pyrrhic.commands.GetCommand(resources)
+        c.validate('foo')
+        
+    @mock.patch('pyrrhic.Resource.get')
+    def testGetCommandDefault(self, mock_get):
+        resources = {'__default__': pyrrhic.Resource('http://foo.com')}
+        c = pyrrhic.commands.GetCommand(resources)
+        c.run()
+        self.assertEqual(True, mock_get.called)

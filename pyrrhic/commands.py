@@ -53,3 +53,23 @@ class ShowCommand(BaseCommand):
     def run(self, *args):
         for name, resource in self.resources.items():
             print "%s\t\t%s" % (name, resource.url)
+            
+
+class GetCommand(BaseCommand):
+    """
+    This command causes the named (or default) resource to 
+    do a GET
+    """
+    def validate(self, *args):
+        if len(args) == 0 and not self.resources.has_key('__default__'):
+            raise ValidationError, 'No default resource and no resource specified'
+        elif len(args) == 1 and not self.resources.has_key(args[0]):
+            raise ValidationError, 'Specified resource not found'
+            
+    def run(self, *args):
+        if len(args) == 0:
+            name = '__default__'
+        else:
+            name = args[0]
+        self.resources[name].get()
+            
