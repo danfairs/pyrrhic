@@ -1,14 +1,27 @@
+import pyrrhic
+
 class BaseCommand(object):
     
     def __init__(self, resources):
         self.resources = resources
 
-class Resource(BaseCommand):
+class ResourceCommand(BaseCommand):
+    """
+    This command adds a new resource.
+    """
     
     def run(self, *args):
-        pass
+        url = args[0]
+        try:
+            name = args[1]
+        except IndexError:
+            name = '__unnamed__'
+        self.resources[name] = pyrrhic.Resource(url)
+        
 
-class Quit(BaseCommand):
-    
+class QuitCommand(BaseCommand):
+    """
+    This command just prints a message out.
+    """
     def run(self, *args):
         print 'Press ^D (Ctrl-D) to quit'

@@ -3,8 +3,8 @@ import pyrrhic.commands
 class CommandParser(object):
 
     commands = {
-        'r': pyrrhic.commands.Resource,
-        'q': pyrrhic.commands.Quit,
+        'r': pyrrhic.commands.ResourceCommand,
+        'q': pyrrhic.commands.QuitCommand,
     }
     
     def parse(self, str):

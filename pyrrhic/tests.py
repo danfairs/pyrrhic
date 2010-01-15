@@ -48,12 +48,12 @@ class CommandParserTestCase(unittest.TestCase):
     
     def testResource(self):
         command, args = self.p.parse('r http://foo.com')
-        self.assertEqual(pyrrhic.commands.Resource, command)
+        self.assertEqual(pyrrhic.commands.ResourceCommand, command)
         self.assertEqual(('http://foo.com',), args)
         
     def testQuit(self):
         command, args = self.p.parse('q')
-        self.assertEqual(pyrrhic.commands.Quit, command)
+        self.assertEqual(pyrrhic.commands.QuitCommand, command)
         self.assertEqual(tuple(), args)
         
         
@@ -62,7 +62,28 @@ class CommandTestCase(unittest.TestCase):
     def testQuit(self):
         out = Writeable()
         sys.stdout = out
-        c = pyrrhic.commands.Quit({})
+        c = pyrrhic.commands.QuitCommand({})
         c.run()
         sys.stdout = sys.__stdout__
         self.assertEqual(['Press ^D (Ctrl-D) to quit', '\n'], out.written)
+        
+    def testResource(self):
+        resources = {}
+        c = pyrrhic.commands.ResourceCommand(resources)
+        c.run('http://foo.com')
+        self.assertEqual(1, len(resources.items()))
+        self.failUnless(resources.has_key('__unnamed__'))
+        
+        unnamed = resources['__unnamed__']
+        self.failUnless(isinstance(unnamed, pyrrhic.Resource))
+        
+        c.run('http://bar.com')
+        unnamed2 = resources['__unnamed__']
+        self.failIf(unnamed is unnamed2)
+
+        c.run('http://cheese.com', 'cheese')
+        self.failUnless(resources.has_key('cheese'))
+        cheese = resources['cheese']
+        self.failIf(cheese is unnamed2)
+        
+
