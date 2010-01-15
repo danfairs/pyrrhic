@@ -18,8 +18,17 @@ class Writeable(object):
     def write(self, str):
         self.written.append(str)
 
+class StdoutRedirectorBase(unittest.TestCase):
 
-class ResourceTestCase(unittest.TestCase):
+    def _stdout(self):
+        sys.stdout = Writeable()
+        return sys.stdout
+        
+    def tearDown(self):
+        sys.stdout = sys.__stdout__
+        
+
+class ResourceTestCase(StdoutRedirectorBase):
     
     def setUp(self):
         self.resource = pyrrhic.Resource('http://foo.com:8080/resource')
@@ -42,7 +51,8 @@ class ResourceTestCase(unittest.TestCase):
         
         self.assertEqual('http://foo.com:8080/resource', self.resource.url)
         
-class CommandParserTestCase(unittest.TestCase):
+        
+class CommandParserTestCase(StdoutRedirectorBase):
     
     def setUp(self):
         self.p = pyrrhic.ui.CommandParser()
@@ -62,21 +72,13 @@ class CommandParserTestCase(unittest.TestCase):
         self.assertEqual(pyrrhic.commands.ShowCommand, command)
         self.assertEqual(tuple(), args)
         
-class CommandTestCase(unittest.TestCase):
+        
+class QuitCommandTestCase(StdoutRedirectorBase):
 
-    def _stdout(self):
-        sys.stdout = Writeable()
-        return sys.stdout
-        
-    def tearDown(self):
-        sys.stdout = sys.__stdout__
-        
     def testQuit(self):
-        out = Writeable()
-        sys.stdout = out
+        out = self._stdout()
         c = pyrrhic.commands.QuitCommand({})
         c.run()
-        sys.stdout = sys.__stdout__
         self.assertEqual(['Press ^D (Ctrl-D) to quit', '\n'], out.written)
         
     def testQuitValidation(self):
@@ -84,16 +86,40 @@ class CommandTestCase(unittest.TestCase):
         c = pyrrhic.commands.QuitCommand({})
         c.validate()
         
+    def testShowEmpty(self):
+        out = self._stdout()
+        c = pyrrhic.commands.ShowCommand({})
+        c.run()
+        self.assertEqual([], out.written)
+
+
+class ResourceCommandTestCase(StdoutRedirectorBase):
+        
+    def testResourceValidation(self):
+        resources = {}
+        c = pyrrhic.commands.ResourceCommand(resources)
+        self.assertRaises(pyrrhic.commands.ValidationError, c.validate)
+
+        # If a URL is present but doesn't start with http or https, then
+        # it should also fail to validate
+        self.assertRaises(pyrrhic.commands.ValidationError, c.validate, 'ftp://foo.bar')
+
+        c.validate('http://foo.com')
+        c.validate('https://foo.com')
+
+        # A straight hostname is also OK, http will be assumed
+        c.validate('foo.com')
+
     def testResource(self):
         resources = {}
         c = pyrrhic.commands.ResourceCommand(resources)
         c.run('http://foo.com')
         self.assertEqual(1, len(resources.items()))
         self.failUnless(resources.has_key('__default__'))
-        
+
         unnamed = resources['__default__']
         self.failUnless(isinstance(unnamed, pyrrhic.Resource))
-        
+
         c.run('http://bar.com')
         unnamed2 = resources['__default__']
         self.failIf(unnamed is unnamed2)
@@ -102,27 +128,15 @@ class CommandTestCase(unittest.TestCase):
         self.failUnless(resources.has_key('cheese'))
         cheese = resources['cheese']
         self.failIf(cheese is unnamed2)
+
+        
+        
+class ShowCommandTestCase(StdoutRedirectorBase):
     
-    def testResourceValidation(self):
-        resources = {}
-        c = pyrrhic.commands.ResourceCommand(resources)
-        self.assertRaises(pyrrhic.commands.ValidationError, c.validate)
-        
-        # If a URL is present but doesn't start with http or https, then
-        # it should also fail to validate
-        self.assertRaises(pyrrhic.commands.ValidationError, c.validate, 'ftp://foo.bar')
-        
-        c.validate('http://foo.com')
-        c.validate('https://foo.com')
-        
-        # A straight hostname is also OK, http will be assumed
-        c.validate('foo.com')
-    
-    def testShowEmpty(self):
-        out = self._stdout()
+    def testShowValidation(self):
+        # Show's validation always passes
         c = pyrrhic.commands.ShowCommand({})
-        c.run()
-        self.assertEqual([], out.written)
+        c.validate()
         
     def testShowResources(self):
         out = self._stdout()
