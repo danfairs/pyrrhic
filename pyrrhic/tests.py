@@ -131,4 +131,8 @@ class CommandTestCase(unittest.TestCase):
         })
         c.run()
         self.assertEqual(['__default__\t\thttp://foo.com','\n'], out.written)
-
+        
+    def testShowValidation(self):
+        # Show's validation always passes
+        c = pyrrhic.commands.ShowCommand({})
+        c.validate()
