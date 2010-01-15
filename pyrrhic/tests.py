@@ -72,6 +72,11 @@ class CommandParserTestCase(StdoutRedirectorBase):
         self.assertEqual(pyrrhic.commands.ShowCommand, command)
         self.assertEqual(tuple(), args)
         
+    def testGet(self):
+        command, args = self.p.parse('get')
+        self.assertEqual(pyrrhic.commands.GetCommand, command)
+        self.assertEqual(tuple(), args)
+        
         
 class QuitCommandTestCase(StdoutRedirectorBase):
 
