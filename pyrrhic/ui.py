@@ -1,0 +1,3 @@
+
+def console():
+    pass

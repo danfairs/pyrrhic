@@ -21,6 +21,7 @@ setup(name='pyrrhic',
           # -*- Extra requirements: -*-
       ],
       entry_points="""
-      # -*- Entry points: -*-
+      [console_scripts]
+      pyr = pyrrhic.ui:console
       """,
       )
