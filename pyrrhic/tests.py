@@ -1,5 +1,7 @@
 from __future__ import with_statement
 
+import sys
+
 import unittest
 import mock
 import testfixtures
@@ -7,6 +9,15 @@ import testfixtures
 import pyrrhic
 import pyrrhic.ui
 import pyrrhic.commands
+
+class Writeable(object):
+    
+    def __init__(self):
+        self.written = []
+    
+    def write(self, str):
+        self.written.append(str)
+
 
 class ResourceTestCase(unittest.TestCase):
     
@@ -32,9 +43,26 @@ class ResourceTestCase(unittest.TestCase):
         
 class CommandParserTestCase(unittest.TestCase):
     
+    def setUp(self):
+        self.p = pyrrhic.ui.CommandParser()
+    
     def testResource(self):
-        p = pyrrhic.ui.CommandParser()
-        command, args = p.parse('r http://foo.com')
-        self.assertEqual(pyrrhic.commands.RESOURCE, command)
+        command, args = self.p.parse('r http://foo.com')
+        self.assertEqual(pyrrhic.commands.Resource, command)
         self.assertEqual(('http://foo.com',), args)
         
+    def testQuit(self):
+        command, args = self.p.parse('q')
+        self.assertEqual(pyrrhic.commands.Quit, command)
+        self.assertEqual(tuple(), args)
+        
+        
+class CommandTestCase(unittest.TestCase):
+
+    def testQuit(self):
+        out = Writeable()
+        sys.stdout = out
+        c = pyrrhic.commands.Quit({})
+        c.run()
+        sys.stdout = sys.__stdout__
+        self.assertEqual(['Press ^D (Ctrl-D) to quit', '\n'], out.written)

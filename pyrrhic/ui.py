@@ -1,9 +1,10 @@
-from pyrrhic.commands import RESOURCE
+import pyrrhic.commands
 
 class CommandParser(object):
 
     commands = {
-        'r': RESOURCE
+        'r': pyrrhic.commands.Resource,
+        'q': pyrrhic.commands.Quit,
     }
     
     def parse(self, str):
@@ -11,6 +12,18 @@ class CommandParser(object):
         cmd = bits[0].lower()
         return self.commands[cmd], tuple(bits[1:])
     
-
+    
 def console():
-    pass
+    p = CommandParser()
+    resources = {}
+    exit = False
+    while not exit:
+        try:
+            inp = raw_input('pyr >>> ')
+            if inp:
+                command, args = p.parse(inp)
+                command(resources).run(args)
+        except EOFError:
+            print
+            exit = True
+    
