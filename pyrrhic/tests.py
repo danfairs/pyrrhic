@@ -79,7 +79,7 @@ class ResourceTestCase(StdoutRedirectorBase):
         self.assertEqual('This is the response body', body)    
         self.assertEqual('http://foo.com:8080/resource', self.resource.url)
         
-        
+                
 class CommandParserTestCase(StdoutRedirectorBase):
     
     def setUp(self):
@@ -179,7 +179,7 @@ class ResourceCommandTestCase(StdoutRedirectorBase):
         self.failUnless(resources.has_key('cheese'))
         cheese = resources['cheese']
         self.failIf(cheese is unnamed2)
-        
+            
         
 class ShowCommandTestCase(StdoutRedirectorBase):
     
@@ -224,7 +224,21 @@ class GetCommandTestCase(StdoutRedirectorBase):
         
     @mock.patch('pyrrhic.Resource.get')
     def testGetCommandDefault(self, mock_get):
+        mock_get.return_value = ('', '', {}, '')
         resources = {'__default__': pyrrhic.Resource('http://foo.com')}
         c = pyrrhic.commands.GetCommand(resources)
         c.run()
         self.assertEqual(True, mock_get.called)
+        
+    @mock.patch('pyrrhic.Resource.get')
+    def testPrintResults(self, mock_get):
+        out = self._stdout()
+        mock_get.return_value = ('200', 'OK', {'header': 'value'}, 'Body Content')
+        resources = {'__default__': pyrrhic.Resource('http://foo.com')}
+        c = pyrrhic.commands.GetCommand(resources)
+        c.run()
+        written = [x for x in out.written if x != '\n']
+        self.assertEqual('200 OK', written[0])
+        self.assertEqual('header: value', written[1])
+        self.assertEqual('Body Content', written[2])
+        

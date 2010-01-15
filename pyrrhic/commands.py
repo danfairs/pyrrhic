@@ -78,5 +78,10 @@ class GetCommand(BaseCommand):
             name = '__default__'
         else:
             name = args[0]
-        self.resources[name].get()
+        status, reason, headers, data = self.resources[name].get()
+        if status or reason:
+            print '%s %s' % (status, reason)
+        for header, value in headers.items():
+            print "%s: %s" % (header, value)
+        print data
             

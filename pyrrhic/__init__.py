@@ -46,7 +46,6 @@ class Resource(object):
                     parsed_url.params, parsed_url.query, parsed_url.fragment))
         self.parsed_url = urlparse.urlparse(self.url)
 
-
     def _getresponse(self, verb, params={}, headers={}):
         assert verb in HTTP_VERBS        
         if not headers:
