@@ -1,9 +1,18 @@
 import pyrrhic
 
+class ValidationError(Exception):
+    """ There was a problem validating the arguments """
+
 class BaseCommand(object):
     
     def __init__(self, resources):
         self.resources = resources
+
+    def validate(self, *args):
+        """
+        Validate that the args are OK. Throws a `ValidationError` if not.
+        """
+        pass
 
 class ResourceCommand(BaseCommand):
     """

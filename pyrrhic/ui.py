@@ -22,7 +22,13 @@ def console():
             inp = raw_input('pyr >>> ')
             if inp:
                 command, args = p.parse(inp)
-                command(resources).run(args)
+                c = command(resources)
+                try:
+                    c.validate(args)
+                except pyrrhic.commands.ValidationError, e:
+                    print "Error: %s" % str(e)
+                    continue
+                c.run(args)
         except EOFError:
             print
             exit = True

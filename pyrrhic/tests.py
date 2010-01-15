@@ -68,6 +68,11 @@ class CommandTestCase(unittest.TestCase):
         sys.stdout = sys.__stdout__
         self.assertEqual(['Press ^D (Ctrl-D) to quit', '\n'], out.written)
         
+    def testQuitValidation(self):
+        # Quit's validation always passes
+        c = pyrrhic.commands.QuitCommand({})
+        c.validate()
+        
     def testResource(self):
         resources = {}
         c = pyrrhic.commands.ResourceCommand(resources)
