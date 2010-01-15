@@ -26,11 +26,20 @@ class ResourceCommand(BaseCommand):
         except IndexError:
             name = '__unnamed__'
         self.resources[name] = pyrrhic.Resource(url)
-        
 
+        
 class QuitCommand(BaseCommand):
     """
     This command just prints a message out.
     """
     def run(self, *args):
         print 'Press ^D (Ctrl-D) to quit'
+
+
+class ShowCommand(BaseCommand):
+    """ 
+    This command prints out all named resources
+    """
+    def run(self, *args):
+        for name, resource in self.resources.items():
+            print "%s\t\t%s" % (name, resource.url)

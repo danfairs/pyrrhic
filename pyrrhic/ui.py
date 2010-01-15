@@ -5,6 +5,7 @@ class CommandParser(object):
     commands = {
         'r': pyrrhic.commands.ResourceCommand,
         'q': pyrrhic.commands.QuitCommand,
+        's': pyrrhic.commands.ShowCommand,
     }
     
     def parse(self, str):

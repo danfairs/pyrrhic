@@ -57,9 +57,20 @@ class CommandParserTestCase(unittest.TestCase):
         self.assertEqual(pyrrhic.commands.QuitCommand, command)
         self.assertEqual(tuple(), args)
         
+    def testShow(self):
+        command, args = self.p.parse('s')
+        self.assertEqual(pyrrhic.commands.ShowCommand, command)
+        self.assertEqual(tuple(), args)
         
 class CommandTestCase(unittest.TestCase):
 
+    def _stdout(self):
+        sys.stdout = Writeable()
+        return sys.stdout
+        
+    def tearDown(self):
+        sys.stdout = sys.__stdout__
+        
     def testQuit(self):
         out = Writeable()
         sys.stdout = out
@@ -91,5 +102,18 @@ class CommandTestCase(unittest.TestCase):
         self.failUnless(resources.has_key('cheese'))
         cheese = resources['cheese']
         self.failIf(cheese is unnamed2)
+    
+    def testShowEmpty(self):
+        out = self._stdout()
+        c = pyrrhic.commands.ShowCommand({})
+        c.run()
+        self.assertEqual([], out.written)
         
+    def testShowResources(self):
+        out = self._stdout()
+        c = pyrrhic.commands.ShowCommand({
+            '__unnamed__': pyrrhic.Resource('http://foo.com')
+        })
+        c.run()
+        self.assertEqual(['__unnamed__\t\thttp://foo.com','\n'], out.written)
 
