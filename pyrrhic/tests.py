@@ -37,7 +37,14 @@ class ResourceTestCase(StdoutRedirectorBase):
         # Note that the URL scheme defaults to http if none is
         # provided
         r = pyrrhic.Resource('foo.com')
-        self.assertEqual('http://foo.com', r.url)
+        self.assertEqual('http://foo.com:80', r.url)
+        
+    def testPort(self):
+        # Port defaults to 80 for http, and 443 for https
+        r = pyrrhic.Resource('http://foo.com')
+        self.assertEqual('http://foo.com:80', r.url)
+        r = pyrrhic.Resource('https://foo.com')
+        self.assertEqual('https://foo.com:443', r.url)
 
     def testGet(self):
         mock_request = mock.Mock()
@@ -172,7 +179,7 @@ class ShowCommandTestCase(StdoutRedirectorBase):
             '__default__': pyrrhic.Resource('http://foo.com')
         })
         c.run()
-        self.assertEqual(['__default__\t\thttp://foo.com','\n'], out.written)
+        self.assertEqual(['__default__\t\thttp://foo.com:80','\n'], out.written)
 
         
 class GetCommandTestCase(StdoutRedirectorBase):

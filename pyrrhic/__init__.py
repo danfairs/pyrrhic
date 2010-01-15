@@ -15,11 +15,30 @@ class Resource(object):
         """
         Create a Resource instance, bound to a URL.
         """
-        self.parsed_url = urlparse.urlparse(url)
-        if not self.parsed_url.scheme:
-            url = 'http://' + url
-            self.parsed_url = urlparse.urlparse(url)
-        self.url = url
+        parsed_url = urlparse.urlparse(url)
+        if not parsed_url.scheme:
+            # If no scheme was provided, then the url parsing
+            # won't have worked. Reparse.
+            scheme = 'http'
+            url = '%s://%s' % (scheme, url)
+            parsed_url = urlparse.urlparse(url)
+        else:
+            scheme = parsed_url.scheme
+
+        if parsed_url.netloc.find(':') < 0:
+            if scheme == 'http':
+                netloc = parsed_url.netloc + ':80'
+            else:
+                netloc = parsed_url.netloc + ':443'
+        else:
+            # Already had an explicit port
+            netloc = parsed_url.netloc
+        
+        # Normalise
+        self.url = urlparse.urlunparse((scheme, netloc, parsed_url.path,
+                    parsed_url.params, parsed_url.query, parsed_url.fragment))
+        self.parsed_url = urlparse.urlparse(self.url)
+
 
     def _getresponse(self, verb, params={}, headers={}):
         assert verb in HTTP_VERBS        
