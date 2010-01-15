@@ -3,6 +3,7 @@ import pyrrhic
 class ValidationError(Exception):
     """ There was a problem validating the arguments """
 
+
 class BaseCommand(object):
     
     def __init__(self, resources):
@@ -13,6 +14,12 @@ class BaseCommand(object):
         Validate that the args are OK. Throws a `ValidationError` if not.
         """
         pass
+
+
+class UnknownCommand(BaseCommand):
+    """ This command prints a message that an unknown command was invoked """
+    def run(self, *args):
+        print 'Unknown command'
 
 class ResourceCommand(BaseCommand):
     """

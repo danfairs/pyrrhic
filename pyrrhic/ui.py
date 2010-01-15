@@ -12,7 +12,8 @@ class CommandParser(object):
     def parse(self, str):
         bits = str.split()
         cmd = bits[0].lower()
-        return self.commands[cmd], tuple(bits[1:])
+        command = self.commands.get(cmd, pyrrhic.commands.UnknownCommand)
+        return command, tuple(bits[1:])
     
     
 def console():

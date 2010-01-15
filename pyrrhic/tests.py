@@ -83,6 +83,11 @@ class CommandParserTestCase(StdoutRedirectorBase):
         self.assertEqual(pyrrhic.commands.GetCommand, command)
         self.assertEqual(tuple(), args)
         
+    def testUnknown(self):
+        command, args = self.p.parse('doesnotexist')
+        self.assertEqual(pyrrhic.commands.UnknownCommand, command)
+        self.assertEqual(tuple(), args)
+        
         
 class QuitCommandTestCase(StdoutRedirectorBase):
 
@@ -102,8 +107,21 @@ class QuitCommandTestCase(StdoutRedirectorBase):
         c = pyrrhic.commands.ShowCommand({})
         c.run()
         self.assertEqual([], out.written)
+        
 
+class UnknownCommandTestCae(StdoutRedirectorBase):
 
+    def testUnknown(self):
+        out = self._stdout()
+        c = pyrrhic.commands.UnknownCommand({})
+        c.run()
+        self.assertEqual(['Unknown command', '\n'], out.written)
+
+    def testUnknownValidation(self):
+        # Unknown validation is a no-op
+        c = pyrrhic.commands.UnknownCommand({})
+        c.validate()
+        
 class ResourceCommandTestCase(StdoutRedirectorBase):
         
     def testResourceValidation(self):
