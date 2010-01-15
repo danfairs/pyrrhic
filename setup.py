@@ -20,6 +20,10 @@ setup(name='pyrrhic',
       install_requires=[
           # -*- Extra requirements: -*-
       ],
+      test_requires=[
+        'nose',
+        'testfixtures',
+      ],
       entry_points="""
       [console_scripts]
       pyr = pyrrhic.ui:console
