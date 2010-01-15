@@ -47,7 +47,7 @@ class ResourceTestCase(StdoutRedirectorBase):
         self.assertEqual('https://foo.com:443', r.url)
         r = pyrrhic.Resource('foo.com:123')        
         self.assertEqual('http://foo.com:123', r.url)
-
+        
     def testGet(self):
         mock_request = mock.Mock()
         response = mock.Mock()
@@ -56,14 +56,27 @@ class ResourceTestCase(StdoutRedirectorBase):
         response.read.return_value = 'This is the response body'
         response.getheaders.return_value = []
         
+        import httplib
+        real_ctor = httplib.HTTPConnection.__init__
+        args = []
+        kwargs = {}
+        def fake_ctor(*ctor_args, **ctor_kwargs):
+            for arg in ctor_args:
+                args.append(arg)
+                kwargs.update(ctor_kwargs)
+            return real_ctor(*ctor_args, **ctor_kwargs)
+        
         with testfixtures.Replacer() as r:
             r.replace('httplib.HTTPConnection.request', mock_request)
             r.replace('httplib.HTTPConnection.getresponse', mock_getresponse)
+            r.replace('httplib.HTTPConnection.__init__', fake_ctor)
             status, reason, headers, body = self.resource.get()
 
+        self.assertEqual({}, kwargs)
+        self.assertEqual('foo.com:8080', args[1])
+    
         self.assertEqual(200, status)
-        self.assertEqual('This is the response body', body)
-        
+        self.assertEqual('This is the response body', body)    
         self.assertEqual('http://foo.com:8080/resource', self.resource.url)
         
         

@@ -51,7 +51,7 @@ class Resource(object):
         assert verb in HTTP_VERBS        
         if not headers:
             headers = self.headers
-        conn = httplib.HTTPConnection('%s://%s' % self.parsed_url[:2])
+        conn = httplib.HTTPConnection(self.parsed_url.netloc)
         url = urlparse.urlunparse(('', '') + self.parsed_url[2:])
         params = urllib.urlencode(params, headers)
         conn.request(verb, self.parsed_url.path, params, headers)
