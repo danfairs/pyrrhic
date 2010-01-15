@@ -17,6 +17,7 @@ class Resource(object):
         >>> r = Resource(u'ftp://something')
         ValueError
         """
+        self.url = url
         self.parsed_url = urlparse.urlparse(url)
 
     def _getresponse(self, verb, params={}, headers={}):

@@ -40,6 +40,7 @@ class ResourceTestCase(unittest.TestCase):
         self.assertEqual(200, status)
         self.assertEqual('This is the response body', body)
         
+        self.assertEqual('http://foo.com:8080/resource', self.resource.url)
         
 class CommandParserTestCase(unittest.TestCase):
     
