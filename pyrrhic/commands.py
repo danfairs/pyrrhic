@@ -19,6 +19,16 @@ class ResourceCommand(BaseCommand):
     This command adds a new resource.
     """
     
+    def validate(self, *args):
+        if len(args) == 0:
+            raise ValidationError, 'Please specify a URL'
+        url = args[0]
+        scheme_end = url.find('://')
+        if scheme_end > -1:
+            scheme = url[:scheme_end]
+            if scheme not in ('http', 'https'):
+                raise ValidationError, 'URL must start with http:// or https://'
+        
     def run(self, *args):
         url = args[0]
         try:

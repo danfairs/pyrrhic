@@ -103,6 +103,21 @@ class CommandTestCase(unittest.TestCase):
         cheese = resources['cheese']
         self.failIf(cheese is unnamed2)
     
+    def testResourceValidation(self):
+        resources = {}
+        c = pyrrhic.commands.ResourceCommand(resources)
+        self.assertRaises(pyrrhic.commands.ValidationError, c.validate)
+        
+        # If a URL is present but doesn't start with http or https, then
+        # it should also fail to validate
+        self.assertRaises(pyrrhic.commands.ValidationError, c.validate, 'ftp://foo.bar')
+        
+        c.validate('http://foo.com')
+        c.validate('https://foo.com')
+        
+        # A straight hostname is also OK, http will be assumed
+        c.validate('foo.com')
+    
     def testShowEmpty(self):
         out = self._stdout()
         c = pyrrhic.commands.ShowCommand({})

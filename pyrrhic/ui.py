@@ -25,7 +25,7 @@ def console():
                 command, args = p.parse(inp)
                 c = command(resources)
                 try:
-                    c.validate(args)
+                    c.validate(*args)
                 except pyrrhic.commands.ValidationError, e:
                     print "Error: %s" % str(e)
                     continue
