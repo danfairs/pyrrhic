@@ -1,9 +1,19 @@
-import httplib
+import cookielib
 import testfixtures
 import urllib
+import urllib2
 import urlparse
 
+import pyrrhic.http
+
 HTTP_VERBS = (u'GET', u'POST', u'PUT', u'DELETE', u'OPTIONS')
+
+opener = urllib2.build_opener(
+    urllib2.HTTPHandler,
+    urllib2.HTTPRedirectHandler,
+    urllib2.HTTPCookieProcessor,
+)
+urllib2.install_opener(opener)
 
 class Resource(object):
     
@@ -45,16 +55,16 @@ class Resource(object):
         self.url = urlparse.urlunparse((scheme, netloc, parsed_url.path,
                     parsed_url.params, parsed_url.query, parsed_url.fragment))
         self.parsed_url = urlparse.urlparse(self.url)
+        
+        # Set up our cookie storage
+        self.cookie_jar = cookielib.FileCookieJar()
 
     def _getresponse(self, verb, params={}, headers={}):
         assert verb in HTTP_VERBS        
         if not headers:
             headers = self.headers
-        conn = httplib.HTTPConnection(self.parsed_url.netloc)
-        url = urlparse.urlunparse(('', '') + self.parsed_url[2:])
-        params = urllib.urlencode(params, headers)
-        conn.request(verb, self.parsed_url.path, params, headers)
-        response = conn.getresponse()
+        request = pyrrhic.http.Request(self.url, req_method=verb)
+        response = urllib2.urlopen(request)
         data = response.read()
         return response.status, response.reason, dict(response.getheaders()), data
 

@@ -9,6 +9,7 @@ import testfixtures
 import pyrrhic
 import pyrrhic.ui
 import pyrrhic.commands
+import pyrrhic.http
 
 class Writeable(object):
     
@@ -54,7 +55,9 @@ class ResourceTestCase(StdoutRedirectorBase):
         mock_getresponse = mock.Mock(return_value=response)
         response.status = 200
         response.read.return_value = 'This is the response body'
-        response.getheaders.return_value = []
+        response.getheaders.return_value = [
+            ('set-cookie', 'k=v; expires=Wed, 15-Jan-14 22:26:38 GMT; path=/; domain=foo.com;')
+        ]
         
         import httplib
         real_ctor = httplib.HTTPConnection.__init__
@@ -79,7 +82,18 @@ class ResourceTestCase(StdoutRedirectorBase):
         self.assertEqual('This is the response body', body)    
         self.assertEqual('http://foo.com:8080/resource', self.resource.url)
         
-                
+        # Check that the cookie is passed back in the headers, and that the resource's
+        # cookie collection contains the cookie.
+        self.assertEqual({
+            'set-cookie': 'k=v; expires=Wed, 15-Jan-14 22:26:38 GMT; path=/; domain=foo.com;'
+        }, headers)
+        cookies = list(self.resource.cookie_jar)
+        self.assertEqual(1, len(cookies))
+        self.assertEqual('k', cookies[0].name)
+        self.assertEqual('v', cookies[0].value)
+        self.assertEqual('/', cookies[0].path)
+        
+
 class CommandParserTestCase(StdoutRedirectorBase):
     
     def setUp(self):
@@ -347,3 +361,23 @@ class OptionsCommandTestCase(StdoutRedirectorBase, RestCommandsTestCaseBase):
     def testPrintResults(self, mock_get):
         super(OptionsCommandTestCase, self).testPrintResults(mock_get)        
         
+    
+class CustomRequestTestCase(unittest.TestCase):
+    
+    def testFallbackGet(self):
+        request = pyrrhic.http.Request('http://foo.com/')
+        self.assertEqual('GET', request.get_method())
+        
+    def testFallbackPost(self):
+        request = pyrrhic.http.Request('http://foo.com/', data='foo')
+        self.assertEqual('POST', request.get_method())
+        
+    def testOverride(self):
+        request = pyrrhic.http.Request('http://foo.com/', req_method='OPTIONS')
+        self.assertEqual('OPTIONS', request.get_method())
+        request = pyrrhic.http.Request('http://foo.com/', req_method='PUT')
+        self.assertEqual('PUT', request.get_method())
+        request = pyrrhic.http.Request('http://foo.com/', req_method='DELETE')
+        self.assertEqual('DELETE', request.get_method())
+
+    
