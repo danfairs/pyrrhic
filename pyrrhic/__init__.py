@@ -3,7 +3,7 @@ import testfixtures
 import urllib
 import urlparse
 
-HTTP_VERBS = (u'GET', u'POST', u'PUT', u'DELETE')
+HTTP_VERBS = (u'GET', u'POST', u'PUT', u'DELETE', u'OPTIONS')
 
 class Resource(object):
     
