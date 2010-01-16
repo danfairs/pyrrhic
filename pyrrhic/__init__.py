@@ -69,3 +69,6 @@ class Resource(object):
         
     def delete(self):
         return self._getresponse('DELETE')
+        
+    def options(self):
+        return self._getresponse('OPTIONS')

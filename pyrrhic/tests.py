@@ -119,6 +119,11 @@ class CommandParserTestCase(StdoutRedirectorBase):
         command, args = self.p.parse('del')
         self.assertEqual(pyrrhic.commands.DeleteCommand, command)
         self.assertEqual(tuple(), args)
+
+    def testDelete(self):
+        command, args = self.p.parse('opts')
+        self.assertEqual(pyrrhic.commands.OptionsCommand, command)
+        self.assertEqual(tuple(), args)
         
     def testUnknown(self):
         command, args = self.p.parse('doesnotexist')
@@ -328,4 +333,17 @@ class DeleteCommandTestCase(StdoutRedirectorBase, RestCommandsTestCaseBase):
     @mock.patch('pyrrhic.Resource.delete')
     def testPrintResults(self, mock_get):
         super(DeleteCommandTestCase, self).testPrintResults(mock_get)        
+
+
+class OptionsCommandTestCase(StdoutRedirectorBase, RestCommandsTestCaseBase):
+    
+    command_class = pyrrhic.commands.OptionsCommand
+        
+    @mock.patch('pyrrhic.Resource.options')
+    def testDoCommandDefault(self, mock_get):
+        super(OptionsCommandTestCase, self).testDoCommandDefault(mock_get)
+
+    @mock.patch('pyrrhic.Resource.options')
+    def testPrintResults(self, mock_get):
+        super(OptionsCommandTestCase, self).testPrintResults(mock_get)        
         

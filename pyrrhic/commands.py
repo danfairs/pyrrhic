@@ -115,6 +115,13 @@ class PutCommand(RestCommand):
     This command causes the named (or default) resource to do a PUT
     """
     method = 'put'
+    
+
+class OptionsCommand(RestCommand):
+    """
+    This command causes the named (or default) resource to do an OPTIONS
+    """
+    method = 'options'
 
 
         
