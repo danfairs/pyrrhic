@@ -1,3 +1,4 @@
+import readline
 import pyrrhic.commands
 
 # HelpCommand is in the ui module because it's nothing to do with core
