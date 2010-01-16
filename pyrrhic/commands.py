@@ -60,29 +60,62 @@ class ShowCommand(BaseCommand):
     def run(self, *args):
         for name, resource in self.resources.items():
             print "%s\t\t%s" % (name, resource.url)
-            
 
-class GetCommand(BaseCommand):
+
+class RestCommand(BaseCommand):            
+    """ Base class for the REST commands, which all have similar 
+        semantics
     """
-    This command causes the named (or default) resource to 
-    do a GET
-    """
+    
+    method = None
+    
     def validate(self, *args):
         if len(args) == 0 and not self.resources.has_key('__default__'):
             raise ValidationError, 'No default resource and no resource specified'
         elif len(args) == 1 and not self.resources.has_key(args[0]):
             raise ValidationError, 'Specified resource not found'
-            
+
     def run(self, *args):
         if len(args) == 0:
             name = '__default__'
         else:
             name = args[0]
-        status, reason, headers, data = self.resources[name].get()
+        method = getattr(self.resources[name], self.method)
+        status, reason, headers, data = method()
         if status or reason:
             print '%s %s' % (status, reason)
         for header, value in headers.items():
             print "%s: %s" % (header, value)
         print data
+
+
+class GetCommand(RestCommand):
+    """
+    This command causes the named (or default) resource to do a GET
+    """
+    method = 'get'
+                             
                     
+class PostCommand(RestCommand):
+    """
+    This command causes the named (or default) resource to do a POST
+    """
+    method = 'post'
+
+
+class DeleteCommand(RestCommand):
+    """
+    This command causes the named (or default) resource to do a DELETE
+    """
+    method = 'delete'
+
+
+class PutCommand(RestCommand):
+    """
+    This command causes the named (or default) resource to do a PUT
+    """
+    method = 'put'
+
+
+        
             

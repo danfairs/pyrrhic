@@ -214,49 +214,103 @@ class ShowCommandTestCase(StdoutRedirectorBase):
         c.run()
         self.assertEqual(['__default__\t\thttp://foo.com:80','\n'], out.written)
 
-        
-class GetCommandTestCase(StdoutRedirectorBase):
-    
-    def testGetCommandNoDefault(self):
+
+class RestCommandsTestCaseBase(object):
+
+    command_class = None
+
+    def testCommandNoDefault(self):
         # If there's no default resource, we should get a validation error
-        c = pyrrhic.commands.GetCommand({})
+        c = self.command_class({})
         self.assertRaises(pyrrhic.commands.ValidationError, c.validate)
         
-    def testGetCommandBadResource(self):
+    def testCommandBadResource(self):
         # If a named resource is supplied that doesn't exist, we should
         # also get a validation error
-        c = pyrrhic.commands.GetCommand({})
+        c = self.command_class({})
         self.assertRaises(pyrrhic.commands.ValidationError, c.validate, 'foo')
 
     def testValidateDefault(self):
         # If a default is present, validation should be OK
         resources = {'__default__': pyrrhic.Resource('http://foo.com')}
-        c = pyrrhic.commands.GetCommand(resources)
+        c = self.command_class(resources)
         c.validate()
         
     def testNotDefaultValidation(self):
         # If a non-default is specified and is present, that's OK too
         resources = {'foo': pyrrhic.Resource('http://foo.com')}
-        c = pyrrhic.commands.GetCommand(resources)
+        c = self.command_class(resources)
         c.validate('foo')
-        
-    @mock.patch('pyrrhic.Resource.get')
-    def testGetCommandDefault(self, mock_get):
+
+    # Overridden in subclass
+    def testDoCommandDefault(self, mock_get):
         mock_get.return_value = ('', '', {}, '')
         resources = {'__default__': pyrrhic.Resource('http://foo.com')}
-        c = pyrrhic.commands.GetCommand(resources)
+        c = self.command_class(resources)
         c.run()
         self.assertEqual(True, mock_get.called)
         
-    @mock.patch('pyrrhic.Resource.get')
+    # Overridden in subclass
     def testPrintResults(self, mock_get):
         out = self._stdout()
         mock_get.return_value = ('200', 'OK', {'header': 'value'}, 'Body Content')
         resources = {'__default__': pyrrhic.Resource('http://foo.com')}
-        c = pyrrhic.commands.GetCommand(resources)
+        c = self.command_class(resources)
         c.run()
         written = [x for x in out.written if x != '\n']
         self.assertEqual('200 OK', written[0])
         self.assertEqual('header: value', written[1])
         self.assertEqual('Body Content', written[2])
+        
+        
+class GetCommandTestCase(StdoutRedirectorBase, RestCommandsTestCaseBase):
+    
+    command_class = pyrrhic.commands.GetCommand
+    
+    @mock.patch('pyrrhic.Resource.get')
+    def testDoCommandDefault(self, mock_get):
+        super(GetCommandTestCase, self).testDoCommandDefault(mock_get)
+
+    @mock.patch('pyrrhic.Resource.get')
+    def testPrintResults(self, mock_get):
+        super(GetCommandTestCase, self).testPrintResults(mock_get)
+        
+        
+class PostCommandTestCase(StdoutRedirectorBase, RestCommandsTestCaseBase):
+    
+    command_class = pyrrhic.commands.PostCommand
+        
+    @mock.patch('pyrrhic.Resource.post')
+    def testDoCommandDefault(self, mock_get):
+        super(PostCommandTestCase, self).testDoCommandDefault(mock_get)
+
+    @mock.patch('pyrrhic.Resource.post')
+    def testPrintResults(self, mock_get):
+        super(PostCommandTestCase, self).testPrintResults(mock_get)
+        
+        
+class PutCommandTestCase(StdoutRedirectorBase, RestCommandsTestCaseBase):
+    
+    command_class = pyrrhic.commands.PutCommand
+        
+    @mock.patch('pyrrhic.Resource.put')
+    def testDoCommandDefault(self, mock_get):
+        super(PutCommandTestCase, self).testDoCommandDefault(mock_get)
+
+    @mock.patch('pyrrhic.Resource.put')
+    def testPrintResults(self, mock_get):
+        super(PutCommandTestCase, self).testPrintResults(mock_get)        
+        
+        
+class DeleteCommandTestCase(StdoutRedirectorBase, RestCommandsTestCaseBase):
+    
+    command_class = pyrrhic.commands.DeleteCommand
+        
+    @mock.patch('pyrrhic.Resource.delete')
+    def testDoCommandDefault(self, mock_get):
+        super(DeleteCommandTestCase, self).testDoCommandDefault(mock_get)
+
+    @mock.patch('pyrrhic.Resource.delete')
+    def testPrintResults(self, mock_get):
+        super(DeleteCommandTestCase, self).testPrintResults(mock_get)        
         
