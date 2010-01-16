@@ -104,6 +104,21 @@ class CommandParserTestCase(StdoutRedirectorBase):
         command, args = self.p.parse('get')
         self.assertEqual(pyrrhic.commands.GetCommand, command)
         self.assertEqual(tuple(), args)
+
+    def testPut(self):
+        command, args = self.p.parse('put')
+        self.assertEqual(pyrrhic.commands.PutCommand, command)
+        self.assertEqual(tuple(), args)
+
+    def testPost(self):
+        command, args = self.p.parse('post')
+        self.assertEqual(pyrrhic.commands.PostCommand, command)
+        self.assertEqual(tuple(), args)
+
+    def testDelete(self):
+        command, args = self.p.parse('del')
+        self.assertEqual(pyrrhic.commands.DeleteCommand, command)
+        self.assertEqual(tuple(), args)
         
     def testUnknown(self):
         command, args = self.p.parse('doesnotexist')

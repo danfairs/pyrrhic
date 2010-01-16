@@ -18,6 +18,9 @@ REGISTERED_COMMANDS = {
     'q': pyrrhic.commands.QuitCommand,
     's': pyrrhic.commands.ShowCommand,
     'get': pyrrhic.commands.GetCommand,
+    'put': pyrrhic.commands.PutCommand,
+    'post': pyrrhic.commands.PostCommand,
+    'del': pyrrhic.commands.DeleteCommand,
 }
 
 
