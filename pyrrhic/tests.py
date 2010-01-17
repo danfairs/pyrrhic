@@ -17,7 +17,7 @@ def build_mock_response(mock_get, code=200, msg='OK', headers={}, data=''):
     # Set attributes that have different names in each twice so the resultant object
     # can be used anywhere.
     mock_response.code = mock_response.status = code
-    mock_response.msg = mock_ = msg
+    mock_response.msg = mock_response.reason = msg
     mock_response.info.return_value = headers.items()
     mock_response.read.return_value = data
     mock_get.return_value = mock_response
