@@ -59,14 +59,10 @@ class Resource(object):
         # Set up our cookie storage
         self.cookie_jar = cookielib.FileCookieJar()
 
-    def _getresponse(self, verb, params={}, headers={}):
+    def _getresponse(self, verb):
         assert verb in HTTP_VERBS        
-        if not headers:
-            headers = self.headers
         request = pyrrhic.http.Request(self.url, req_method=verb)
-        response = urllib2.urlopen(request)
-        data = response.read()
-        return response.status, response.reason, dict(response.getheaders()), data
+        return urllib2.urlopen(request)
 
     def get(self):
          return self._getresponse('GET')

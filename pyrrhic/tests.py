@@ -48,50 +48,13 @@ class ResourceTestCase(StdoutRedirectorBase):
         self.assertEqual('https://foo.com:443', r.url)
         r = pyrrhic.Resource('foo.com:123')        
         self.assertEqual('http://foo.com:123', r.url)
-        
-    def testGet(self):
-        mock_request = mock.Mock()
-        response = mock.Mock()
-        mock_getresponse = mock.Mock(return_value=response)
-        response.status = 200
-        response.read.return_value = 'This is the response body'
-        response.getheaders.return_value = [
-            ('set-cookie', 'k=v; expires=Wed, 15-Jan-14 22:26:38 GMT; path=/; domain=foo.com;')
-        ]
-        
-        import httplib
-        real_ctor = httplib.HTTPConnection.__init__
-        args = []
-        kwargs = {}
-        def fake_ctor(*ctor_args, **ctor_kwargs):
-            for arg in ctor_args:
-                args.append(arg)
-                kwargs.update(ctor_kwargs)
-            return real_ctor(*ctor_args, **ctor_kwargs)
-        
-        with testfixtures.Replacer() as r:
-            r.replace('httplib.HTTPConnection.request', mock_request)
-            r.replace('httplib.HTTPConnection.getresponse', mock_getresponse)
-            r.replace('httplib.HTTPConnection.__init__', fake_ctor)
-            status, reason, headers, body = self.resource.get()
 
-        self.assertEqual({}, kwargs)
-        self.assertEqual('foo.com:8080', args[1])
-    
-        self.assertEqual(200, status)
-        self.assertEqual('This is the response body', body)    
-        self.assertEqual('http://foo.com:8080/resource', self.resource.url)
-        
-        # Check that the cookie is passed back in the headers, and that the resource's
-        # cookie collection contains the cookie.
-        self.assertEqual({
-            'set-cookie': 'k=v; expires=Wed, 15-Jan-14 22:26:38 GMT; path=/; domain=foo.com;'
-        }, headers)
-        cookies = list(self.resource.cookie_jar)
-        self.assertEqual(1, len(cookies))
-        self.assertEqual('k', cookies[0].name)
-        self.assertEqual('v', cookies[0].value)
-        self.assertEqual('/', cookies[0].path)
+    @mock.patch('urllib2.OpenerDirector.open')
+    def testGet(self, mock_open):
+        mock_response = mock.Mock()
+        mock_open.return_value = mock_response        
+        response = self.resource.get()
+        self.failUnless(response is mock_response)
         
 
 class CommandParserTestCase(StdoutRedirectorBase):

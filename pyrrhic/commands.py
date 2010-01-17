@@ -80,8 +80,11 @@ class RestCommand(BaseCommand):
             name = '__default__'
         else:
             name = args[0]
-        method = getattr(self.resources[name], self.method)
-        status, reason, headers, data = method()
+        response = getattr(self.resources[name], self.method)()
+        status = response.code
+        reason = response.msg
+        headers = dict(response.info())
+        data = response.read()
         if status or reason:
             print '%s %s' % (status, reason)
         for header, value in headers.items():
