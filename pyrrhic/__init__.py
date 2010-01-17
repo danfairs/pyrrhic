@@ -1,5 +1,4 @@
 import cookielib
-import testfixtures
 import urllib
 import urllib2
 import urlparse
