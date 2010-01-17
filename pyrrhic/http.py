@@ -18,3 +18,8 @@ class Request(urllib2.Request):
             return urllib2.Request.get_method(self)
         return self.req_method
         
+
+class PyrrhicHTTPErrorHandler(urllib2.HTTPDefaultErrorHandler):
+    
+    def http_error_default(self, req, fp, code, msg, hdrs):
+        return fp

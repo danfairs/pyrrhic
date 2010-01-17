@@ -9,11 +9,8 @@ import pyrrhic.http
 HTTP_VERBS = (u'GET', u'POST', u'PUT', u'DELETE', u'OPTIONS')
 
 opener = urllib2.build_opener(
-    urllib2.HTTPHandler,
-    urllib2.HTTPRedirectHandler,
-    urllib2.HTTPCookieProcessor,
+    pyrrhic.http.PyrrhicHTTPErrorHandler,
 )
-urllib2.install_opener(opener)
 
 class Resource(object):
     
@@ -62,7 +59,7 @@ class Resource(object):
     def _getresponse(self, verb):
         assert verb in HTTP_VERBS        
         request = pyrrhic.http.Request(self.url, req_method=verb)
-        return urllib2.urlopen(request)
+        return opener.open(request)
 
     def get(self):
          return self._getresponse('GET')

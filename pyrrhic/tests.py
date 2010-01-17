@@ -4,12 +4,24 @@ import sys
 
 import unittest
 import mock
-import testfixtures
 
 import pyrrhic
 import pyrrhic.ui
 import pyrrhic.commands
 import pyrrhic.http
+
+def build_mock_response(mock_get, code=200, msg='OK', headers={}, data=''):
+    mock_response = mock.Mock()
+    
+    # The API for the response object changes slightly between httplib and urllib2.
+    # Set attributes that have different names in each twice so the resultant object
+    # can be used anywhere.
+    mock_response.code = mock_response.status = code
+    mock_response.msg = mock_ = msg
+    mock_response.info.return_value = headers.items()
+    mock_response.read.return_value = data
+    mock_get.return_value = mock_response
+    return mock_response
 
 class Writeable(object):
     
@@ -51,11 +63,18 @@ class ResourceTestCase(StdoutRedirectorBase):
 
     @mock.patch('urllib2.OpenerDirector.open')
     def testGet(self, mock_open):
-        mock_response = mock.Mock()
+        mock_response = build_mock_response(mock_open)
         mock_open.return_value = mock_response        
         response = self.resource.get()
         self.failUnless(response is mock_response)
         
+    @mock.patch('httplib.HTTPConnection.getresponse')
+    @mock.patch('httplib.HTTPConnection.request')
+    def test40x(self, mock_request, mock_getresponse):
+        mock_response = build_mock_response(mock_getresponse, code=405, msg='Method not allowed')
+        response = self.resource.get()
+        self.assertEqual(405, response.code)
+                
 
 class CommandParserTestCase(StdoutRedirectorBase):
     
@@ -241,7 +260,7 @@ class RestCommandsTestCaseBase(object):
 
     # Overridden in subclass
     def testDoCommandDefault(self, mock_get):
-        mock_get.return_value = ('', '', {}, '')
+        mock_response = build_mock_response(mock_get)
         resources = {'__default__': pyrrhic.Resource('http://foo.com')}
         c = self.command_class(resources)
         c.run()
@@ -250,7 +269,7 @@ class RestCommandsTestCaseBase(object):
     # Overridden in subclass
     def testPrintResults(self, mock_get):
         out = self._stdout()
-        mock_get.return_value = ('200', 'OK', {'header': 'value'}, 'Body Content')
+        mock_response = build_mock_response(mock_get, headers={'header':'value'}, data='Body Content')
         resources = {'__default__': pyrrhic.Resource('http://foo.com')}
         c = self.command_class(resources)
         c.run()
@@ -342,5 +361,7 @@ class CustomRequestTestCase(unittest.TestCase):
         self.assertEqual('PUT', request.get_method())
         request = pyrrhic.http.Request('http://foo.com/', req_method='DELETE')
         self.assertEqual('DELETE', request.get_method())
+        
+                
 
     

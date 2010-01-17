@@ -81,6 +81,7 @@ class RestCommand(BaseCommand):
         else:
             name = args[0]
         response = getattr(self.resources[name], self.method)()
+    
         status = response.code
         reason = response.msg
         headers = dict(response.info())
