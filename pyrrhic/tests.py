@@ -72,7 +72,21 @@ class ResourceTestCase(StdoutRedirectorBase):
         mock_response = build_mock_response(mock_getresponse, code=405, msg='Method not allowed')
         response = self.resource.get()
         self.assertEqual(405, response.code)
-                
+        
+    @mock.patch('urllib2.OpenerDirector.open')
+    @mock.patch('pyrrhic.http.Request.__init__')
+    def testPostPutData(self, mock_ctor, mock_open):
+        mock_response = build_mock_response(mock_open)
+        post_data = {'post': 'data'}
+        mock_ctor.return_value = None
+        for m in 'put', 'post':
+            getattr(self.resource, m)(data=post_data)
+            args, kwargs = mock_ctor.call_args
+            self.assertEqual(('http://foo.com:8080/resource',), args)
+            self.assertEqual({
+                'req_method': m.upper(),
+                'data': 'post=data'
+            }, kwargs)
 
 class CommandParserTestCase(StdoutRedirectorBase):
     

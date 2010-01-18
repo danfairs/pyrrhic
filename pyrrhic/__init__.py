@@ -4,7 +4,15 @@ import urlparse
 
 import pyrrhic.http
 
-HTTP_VERBS = (u'GET', u'POST', u'PUT', u'DELETE', u'OPTIONS')
+# Mapping of HTTP verbs to a bool indicating whether data is required
+# for each of them.
+HTTP_VERBS = {
+    u'GET': False, 
+    u'POST': True, 
+    u'PUT': True, 
+    u'DELETE': False, 
+    u'OPTIONS': False,
+}
 
 opener = urllib2.build_opener(
     pyrrhic.http.PyrrhicHTTPErrorHandler,
@@ -51,19 +59,21 @@ class Resource(object):
                     parsed_url.params, parsed_url.query, parsed_url.fragment))
         self.parsed_url = urlparse.urlparse(self.url)
 
-    def _getresponse(self, verb):
-        assert verb in HTTP_VERBS        
-        request = pyrrhic.http.Request(self.url, req_method=verb)
+    def _getresponse(self, verb, data=None):
+        assert verb in HTTP_VERBS
+        if HTTP_VERBS[verb]:
+            data = urllib.urlencode(data)        
+        request = pyrrhic.http.Request(self.url, req_method=verb, data=data)
         return opener.open(request)
 
     def get(self):
          return self._getresponse('GET')
 
-    def put(self):
-        return self._getresponse('PUT')
+    def put(self, data={}):
+        return self._getresponse('PUT', data)
         
-    def post(self):
-        return self._getresponse('POST')
+    def post(self, data={}):
+        return self._getresponse('POST', data)
         
     def delete(self):
         return self._getresponse('DELETE')
