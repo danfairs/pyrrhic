@@ -62,7 +62,7 @@ class Resource(object):
     def _getresponse(self, verb, data=None):
         assert verb in HTTP_VERBS
         if HTTP_VERBS[verb]:
-            data = urllib.urlencode(data)        
+            data = urllib.urlencode(data, doseq=True)        
         request = pyrrhic.http.Request(self.url, req_method=verb, data=data)
         return opener.open(request)
 

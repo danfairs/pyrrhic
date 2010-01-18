@@ -1,3 +1,4 @@
+import urlparse
 import pyrrhic
 
 class ValidationError(Exception):
@@ -70,18 +71,16 @@ class RestCommand(BaseCommand):
     method = None
     
     def validate(self, *args):
-        if len(args) == 0 and not self.resources.has_key('__default__'):
-            raise ValidationError, 'No default resource and no resource specified'
-        elif len(args) == 1 and not self.resources.has_key(args[0]):
+        name, kwargs = self._parse_resource_data(*args)
+        if not self.resources.has_key(name):
             raise ValidationError, 'Specified resource not found'
 
     def run(self, *args):
-        if len(args) == 0:
-            name = '__default__'
-        else:
-            name = args[0]
-        response = getattr(self.resources[name], self.method)()
-    
+        name, data = self._parse_resource_data(*args)
+        kw = {}
+        if data:
+            kw['data'] = data
+        response = getattr(self.resources[name], self.method)(**kw)
         status = response.code
         reason = response.msg
         headers = dict(response.info())
@@ -92,6 +91,20 @@ class RestCommand(BaseCommand):
             print "%s: %s" % (header, value)
         print data
 
+    def _parse_resource_data(self, *args):
+        # Parse out a resource name and/or data. If the first
+        # element starts with a colon, then it's data. Otherwise,
+        # it'll be the name of the resource, and the rest will be data.
+        name = '__default__'
+        args = list(args)
+        kw = {}
+        if args:
+            if not args[0].startswith(':'):
+                name = args.pop(0)
+            if args:
+                kw = urlparse.parse_qs(args[0][1:])
+        return name, kw
+        
 
 class GetCommand(RestCommand):
     """

@@ -122,6 +122,11 @@ class CommandParserTestCase(StdoutRedirectorBase):
         command, args = self.p.parse('post')
         self.assertEqual(pyrrhic.commands.PostCommand, command)
         self.assertEqual(tuple(), args)
+        
+    def testPostData(self):
+        command, args = self.p.parse('post :username=foo')
+        self.assertEqual(pyrrhic.commands.PostCommand, command)
+        self.assertEqual((':username=foo',), args)
 
     def testDelete(self):
         command, args = self.p.parse('del')
@@ -316,6 +321,15 @@ class PostCommandTestCase(StdoutRedirectorBase, RestCommandsTestCaseBase):
     def testPrintResults(self, mock_get):
         super(PostCommandTestCase, self).testPrintResults(mock_get)
         
+    @mock.patch('pyrrhic.Resource.post')
+    def testPostData(self, mock_post):
+        mock_response = build_mock_response(mock_post, headers={'header':'value'}, data='Body Content')
+        resources = {'__default__': pyrrhic.Resource('http://foo.com')}
+        c = self.command_class(resources)
+        c.run(':key=value')
+        args, kwargs = mock_post.call_args
+        self.assertEqual({'data': {'key': ['value']}}, kwargs)
+        self.assertEqual(tuple(), args)
         
 class PutCommandTestCase(StdoutRedirectorBase, RestCommandsTestCaseBase):
     
@@ -328,6 +342,16 @@ class PutCommandTestCase(StdoutRedirectorBase, RestCommandsTestCaseBase):
     @mock.patch('pyrrhic.Resource.put')
     def testPrintResults(self, mock_get):
         super(PutCommandTestCase, self).testPrintResults(mock_get)        
+
+    @mock.patch('pyrrhic.Resource.put')
+    def testPutData(self, mock_put):
+        mock_response = build_mock_response(mock_put, headers={'header':'value'}, data='Body Content')
+        resources = {'__default__': pyrrhic.Resource('http://foo.com')}
+        c = self.command_class(resources)
+        c.run(':key=value')
+        args, kwargs = mock_put.call_args
+        self.assertEqual({'data': {'key': ['value']}}, kwargs)
+        self.assertEqual(tuple(), args)
         
         
 class DeleteCommandTestCase(StdoutRedirectorBase, RestCommandsTestCaseBase):
