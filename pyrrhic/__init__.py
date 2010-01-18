@@ -1,4 +1,3 @@
-import cookielib
 import urllib
 import urllib2
 import urlparse
@@ -51,9 +50,6 @@ class Resource(object):
         self.url = urlparse.urlunparse((scheme, netloc, parsed_url.path,
                     parsed_url.params, parsed_url.query, parsed_url.fragment))
         self.parsed_url = urlparse.urlparse(self.url)
-        
-        # Set up our cookie storage
-        self.cookie_jar = cookielib.FileCookieJar()
 
     def _getresponse(self, verb):
         assert verb in HTTP_VERBS        
