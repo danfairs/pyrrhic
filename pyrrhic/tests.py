@@ -33,10 +33,12 @@ class StdoutRedirectorBase(unittest.TestCase):
 
     def _stdout(self):
         sys.stdout = Writeable()
-        return sys.stdout
+        sys.stderr = Writeable()
+        return sys.stdout, sys.stderr
         
     def tearDown(self):
         sys.stdout = sys.__stdout__
+        sys.stderr = sys.__stderr__
         
 
 class ResourceTestCase(StdoutRedirectorBase):
@@ -147,7 +149,7 @@ class CommandParserTestCase(StdoutRedirectorBase):
 class QuitCommandTestCase(StdoutRedirectorBase):
 
     def testQuit(self):
-        out = self._stdout()
+        out, err = self._stdout()        
         c = pyrrhic.commands.QuitCommand({})
         c.run()
         self.assertEqual(['Press ^D (Ctrl-D) to quit', '\n'], out.written)
@@ -158,7 +160,7 @@ class QuitCommandTestCase(StdoutRedirectorBase):
         c.validate()
         
     def testShowEmpty(self):
-        out = self._stdout()
+        out, err = self._stdout()       
         c = pyrrhic.commands.ShowCommand({})
         c.run()
         self.assertEqual([], out.written)
@@ -167,7 +169,7 @@ class QuitCommandTestCase(StdoutRedirectorBase):
 class HelpCommandTestCase(StdoutRedirectorBase):
     
     def testHelp(self):
-        out = self._stdout()
+        out, err = self._stdout()        
         c = pyrrhic.ui.HelpCommand({})
         c.run()
         
@@ -185,7 +187,7 @@ class HelpCommandTestCase(StdoutRedirectorBase):
 class UnknownCommandTestCae(StdoutRedirectorBase):
 
     def testUnknown(self):
-        out = self._stdout()
+        out, err = self._stdout()        
         c = pyrrhic.commands.UnknownCommand({})
         c.run()
         self.assertEqual(['Unknown command', '\n'], out.written)
@@ -240,7 +242,7 @@ class ShowCommandTestCase(StdoutRedirectorBase):
         c.validate()
         
     def testShowResources(self):
-        out = self._stdout()
+        out, err = self._stdout()        
         c = pyrrhic.commands.ShowCommand({
             '__default__': pyrrhic.Resource('http://foo.com')
         })
@@ -285,7 +287,7 @@ class RestCommandsTestCaseBase(object):
         
     # Overridden in subclass
     def testPrintResults(self, mock_get):
-        out = self._stdout()
+        out, err = self._stdout()        
         mock_response = build_mock_response(mock_get, headers={'header':'value'}, data='Body Content')
         resources = {'__default__': pyrrhic.Resource('http://foo.com')}
         c = self.command_class(resources)
@@ -398,6 +400,28 @@ class CustomRequestTestCase(unittest.TestCase):
         request = pyrrhic.http.Request('http://foo.com/', req_method='DELETE')
         self.assertEqual('DELETE', request.get_method())
         
-                
+
+class UiTestCase(StdoutRedirectorBase):
+        
+    def setUp(self):
+        resources = {'__default__': pyrrhic.Resource('http://foo.com')}
+        self.command = pyrrhic.commands.GetCommand(resources)
+        self.out, self.err = self._stdout()
+        
+    @mock.patch('pyrrhic.commands.GetCommand.run')
+    def testUrlError(self, mock_run):
+        import urllib2
+        mock_run.side_effect = urllib2.URLError('dummy')
+        pyrrhic.ui.run_command(self.command, tuple())        
+        written = ''.join(self.err.written)
+        self.failUnless(written.find('URLError') > -1)
+        
+    @mock.patch('pyrrhic.commands.GetCommand.run')
+    def testGaiErrro(self, mock_run):
+        import socket
+        mock_run.side_effect = socket.gaierror('dummy')
+        pyrrhic.ui.run_command(self.command, tuple())        
+        written = ''.join(self.err.written)
+        self.failUnless(written.find('gaierror') > -1)
 
     

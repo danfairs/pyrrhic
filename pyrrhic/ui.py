@@ -1,5 +1,8 @@
 import readline
 import pyrrhic.commands
+import urllib
+import urllib2
+import socket
 
 # HelpCommand is in the ui module because it's nothing to do with core
 # functionality
@@ -34,6 +37,20 @@ class CommandParser(object):
         command = REGISTERED_COMMANDS.get(cmd, pyrrhic.commands.UnknownCommand)
         return command, tuple(bits[1:])
         
+
+def run_command(command, args):
+    """ Validate and run the supplied command """
+    try:
+        command.validate(*args)
+    except pyrrhic.commands.ValidationError, e:
+        print "Error: %s" % str(e)
+        return
+    try:
+        command.run(*args)
+    except (urllib2.URLError, socket.gaierror), e:
+        import traceback
+        traceback.print_exc()
+    
     
 def console():
     p = CommandParser()
@@ -45,12 +62,7 @@ def console():
             if inp:
                 command, args = p.parse(inp)
                 c = command(resources)
-                try:
-                    c.validate(*args)
-                except pyrrhic.commands.ValidationError, e:
-                    print "Error: %s" % str(e)
-                    continue
-                c.run(*args)
+                run_command(c, args)
         except EOFError:
             print
             exit = True
