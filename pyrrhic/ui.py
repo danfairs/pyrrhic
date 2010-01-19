@@ -26,6 +26,7 @@ REGISTERED_COMMANDS = {
     'post': pyrrhic.commands.PostCommand,
     'del': pyrrhic.commands.DeleteCommand,
     'opts': pyrrhic.commands.OptionsCommand,
+    'auth': pyrrhic.commands.AuthCommand,
 }
 
 

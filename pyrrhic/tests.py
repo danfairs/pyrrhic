@@ -1,3 +1,4 @@
+import base64
 import sys
 
 import unittest
@@ -89,6 +90,21 @@ class ResourceTestCase(StdoutRedirectorBase):
                 'req_method': m.upper(),
                 'data': 'post=data'
             }, kwargs)
+        
+    @mock.patch('urllib2.OpenerDirector.open')
+    @mock.patch('pyrrhic.http.Request.add_header')
+    def testAuthentication(self, mock_add_header, mock_open):
+        mock_response = build_mock_response(mock_open)
+        self.assertEqual(False, self.resource.has_authentication)
+        self.resource.set_authentication('username', 'password')
+        self.assertEqual(True, self.resource.has_authentication)
+        self.resource.get()
+        self.assertEqual(True, mock_add_header.called)
+        args, kw = mock_add_header.call_args
+        expected = 'Basic ' + base64.b64encode('username:password')
+        self.assertEqual(('Authorization', expected),
+                         args)
+        self.assertEqual({}, kw)
 
 class CommandParserTestCase(StdoutRedirectorBase):
     
@@ -145,6 +161,11 @@ class CommandParserTestCase(StdoutRedirectorBase):
         self.assertEqual(pyrrhic.commands.UnknownCommand, command)
         self.assertEqual(tuple(), args)
         
+    def testAuth(self):
+        command, args = self.p.parse('auth username password')
+        self.assertEqual(pyrrhic.commands.AuthCommand, command)
+        self.assertEqual(('username', 'password'), args)
+
         
 class QuitCommandTestCase(StdoutRedirectorBase):
 
@@ -232,7 +253,42 @@ class ResourceCommandTestCase(StdoutRedirectorBase):
         self.failUnless(resources.has_key('cheese'))
         cheese = resources['cheese']
         self.failIf(cheese is unnamed2)
-            
+        
+        
+class AuthCommandTestCase(StdoutRedirectorBase):
+    
+    def setUp(self):
+        self.resources = {
+            '__default__': pyrrhic.Resource('http://foo.com/')
+        }
+        
+        self.c = pyrrhic.commands.AuthCommand(self.resources)
+    
+    def testAuthValidation(self):
+        c = pyrrhic.commands.AuthCommand(self.resources)
+        
+        # If a username and password aren't provided, then we should
+        # get a validation error
+        self.assertRaises(pyrrhic.commands.ValidationError, self.c.validate)
+        self.assertRaises(pyrrhic.commands.ValidationError, self.c.validate, 
+                          'username')
+        self.c.validate('username', 'password')
+
+        # If you provide three args, the last arg is interpreted as a resource.
+        self.c.validate('username', 'password', '__default__')
+        
+        # Referring to a non-existent resource should cause a validation error
+        self.assertRaises(pyrrhic.commands.ValidationError, self.c.validate, 
+                          'username', 'password', 'foo')
+                          
+    @mock.patch('pyrrhic.Resource.set_authentication')
+    def testAuthSetsResource(self, mock_set_authentication):
+        self.c.run('username', 'password')
+        self.assertEqual(True, mock_set_authentication.called)
+        args, kw = mock_set_authentication.call_args
+        self.assertEqual(('username', 'password'), args)
+        self.assertEqual({}, kw)
+        
         
 class ShowCommandTestCase(StdoutRedirectorBase):
     
@@ -248,6 +304,17 @@ class ShowCommandTestCase(StdoutRedirectorBase):
         })
         c.run()
         self.assertEqual(['__default__\t\thttp://foo.com:80','\n'], out.written)
+        
+    def testShowAuth(self):
+        # When there are credentials set, show the resource with a *
+        out, err = self._stdout()        
+        r = pyrrhic.Resource('http://foo.com')
+        r.set_authentication('username', 'password')
+        c = pyrrhic.commands.ShowCommand({
+            '__default__': r
+        })
+        c.run()
+        self.assertEqual(['__default__\t\t*http://foo.com:80','\n',], out.written)
 
 
 class RestCommandsTestCaseBase(object):

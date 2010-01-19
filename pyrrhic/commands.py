@@ -60,7 +60,35 @@ class ShowCommand(BaseCommand):
     """
     def run(self, *args):
         for name, resource in self.resources.items():
-            print "%s\t\t%s" % (name, resource.url)
+            resource_url = resource.url
+            if resource.has_authentication:
+                resource_url = '*' + resource_url
+            print "%s\t\t%s" % (name, resource_url)
+
+class AuthCommand(BaseCommand):
+    """ Add basic authentication headers to a resource """
+    
+    def validate(self, *args):
+        len_args = len(args)
+        if len_args < 2 or len_args > 3:
+            raise ValidationError, 'Please supply a username, password and optional resource name'
+
+        if len_args == 3:
+            _, _, name = args
+        else:
+            name = '__default__'
+            
+        if not self.resources.has_key(name):
+            raise ValidationError, 'No such resource %s' % name
+            
+    def run(self, *args):
+        if len(args) == 2:
+            username, password = args
+            name = '__default__'
+        else:
+            username, password, name = args
+            
+        self.resources[name].set_authentication(username, password)
 
 
 class RestCommand(BaseCommand):            

@@ -1,3 +1,4 @@
+import base64
 import urllib
 import urllib2
 import urlparse
@@ -20,14 +21,14 @@ opener = urllib2.build_opener(
 
 class Resource(object):
     
-    headers = {
-        'Content-type': 'application/xml'
-    }
+    has_authentication = False
     
     def __init__(self, url):
         """
         Create a Resource instance, bound to a URL.
         """
+        self._headers = {}
+        
         parsed_url = urlparse.urlparse(url)
         if parsed_url.scheme and not parsed_url.netloc:
             # If we have a scheme but no netloc, someone's entered
@@ -59,11 +60,18 @@ class Resource(object):
                     parsed_url.params, parsed_url.query, parsed_url.fragment))
         self.parsed_url = urlparse.urlparse(self.url)
 
+    def set_authentication(self, username, password):
+        auth = base64.b64encode('%s:%s' % (username, password))
+        self._headers['Authorization'] = 'Basic %s' % auth
+        self.has_authentication = True
+
     def _getresponse(self, verb, data=None):
         assert verb in HTTP_VERBS
         if HTTP_VERBS[verb]:
-            data = urllib.urlencode(data, doseq=True)        
+            data = urllib.urlencode(data, doseq=True)
         request = pyrrhic.http.Request(self.url, req_method=verb, data=data)
+        for header, value in self._headers.items():
+            request.add_header(header, value)
         return opener.open(request)
 
     def get(self):
