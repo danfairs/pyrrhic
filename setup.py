@@ -22,7 +22,7 @@ setup(name='pyrrhic',
       ],
       test_requires=[
         'nose',
-        'testfixtures',
+        'mock',
       ],
       entry_points="""
       [console_scripts]
